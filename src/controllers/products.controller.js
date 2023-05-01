@@ -133,7 +133,6 @@ export const updateProductId = async (req, res) => {
       });
     }
 
-
     const foundInventory = await Inventory.findOne({
       _author: userId,
       _id: _inventory,
@@ -155,6 +154,39 @@ export const updateProductId = async (req, res) => {
     );
 
     return res.status(200).json(updatedProduct);
+  } catch (error) {
+    res.status(403).json({
+      message: error.message,
+    });
+  }
+};
+
+export const deleteProduct = async (req, res) => {
+  try {
+    const { productId, inventoryId } = req.params;
+    const userId = req.id;
+
+    if (!isValidObjectId(inventoryId) || !isValidObjectId(productId)) {
+      return res.status(422).json({
+        message: "Compruebe los ID ingresados.",
+      });
+    }
+
+    const foundInventory = await Inventory.findOne({
+      _author: userId,
+      _id: inventoryId,
+    });
+
+    if (!foundInventory) {
+      throw new Error("No se encontró el inventario.");
+    }
+
+    const deletedProduct = await Product.findOneAndDelete({
+      _inventory: inventoryId,
+      _id: productId,
+    });
+
+    return res.status(200).json(deletedProduct);
   } catch (error) {
     res.status(403).json({
       message: error.message,
